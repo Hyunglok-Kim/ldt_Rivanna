@@ -45,7 +45,13 @@ module NASASMAPsm_obsMod
 
      character*100          :: odir
      character*20           :: data_designation
+
+    
+     character*20           :: applyerr            !HK
      character*20           :: errdata_designation !HK
+     character*100          :: errdir              !HK
+
+
      character*3            :: release_number
      real                   :: search_radius
      integer                :: mo
@@ -127,6 +133,39 @@ contains
             rc=status)
        call LDT_verify(status, &
             'NASA SMAP search radius for openwater proximity detection: not defined')
+    enddo
+    
+    !HK
+    call ESMF_ConfigFindLabel(LDT_config, &
+         'Apply error map:', rc=status)
+    do n=1,LDT_rc%nnest
+       call ESMF_ConfigGetAttribute(LDT_Config, &
+            NASASMAPsmobs(n)%applyerr, &
+            rc=status)
+       call LDT_verify(status, &
+            'Apply error map: not defined')
+    enddo
+
+    !HK
+    call ESMF_ConfigFindLabel(LDT_config, &
+         'NASA SMAP soil moisture error data designation:', rc=status)
+    do n=1,LDT_rc%nnest
+       call ESMF_ConfigGetAttribute(LDT_Config, &
+            NASASMAPsmobs(n)%errdata_designation, &
+            rc=status)
+       call LDT_verify(status, &
+            'NASA SMAP soil moisture error data designation: not defined')
+    enddo
+
+    !HK
+    call ESMF_ConfigFindLabel(LDT_config, &
+         'Error map directory:', rc=status)
+    do n=1,LDT_rc%nnest
+       call ESMF_ConfigGetAttribute(LDT_Config, &
+            NASASMAPsmobs(n)%errdir, &
+            rc=status)
+       call LDT_verify(status, &
+            'Error map directory: not defined')
     enddo
 
     do n=1,LDT_rc%nnest
