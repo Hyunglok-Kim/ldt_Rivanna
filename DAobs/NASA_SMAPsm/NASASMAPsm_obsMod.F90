@@ -45,7 +45,8 @@ module NASASMAPsm_obsMod
 
      character*100          :: odir
      character*20           :: data_designation
-     character*3             :: release_number
+     character*20           :: errdata_designation !HK
+     character*3            :: release_number
      real                   :: search_radius
      integer                :: mo
      real,    allocatable   :: smobs(:,:)
