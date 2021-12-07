@@ -1,0 +1,5 @@
+LDT_SigmaMod.o LDT_SigmaMod.d : LDT_SigmaMod.F90
+LDT_SigmaMod.o : LDT_DAmetricsDataMod.o
+LDT_SigmaMod.o : LDT_coreMod.o
+LDT_SigmaMod.o : LDT_logMod.o
+LDT_SigmaMod.o : LDT_DAobsDataMod.o

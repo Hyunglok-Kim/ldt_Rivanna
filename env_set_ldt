@@ -1,0 +1,9 @@
+cd /home/hk5kp/libs/ldt
+chmod +x configure compile make/*.py
+
+MODS="intel/18.0 intelmpi/18.0 grib_api netcdf/4.6.2-hdf5-1.8.22 hdf/4.2.14-fortran hdf5/1.8.22 hdf-eos/2.20-fortran esmf/7.1.0r-hdf5-1.8.22 openjpeg"
+module purge
+module load $MODS 
+echo "Loaded $MODS"
+
+./compile

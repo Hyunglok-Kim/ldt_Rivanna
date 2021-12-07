@@ -1,0 +1,31 @@
+FC              = mpiifort
+FC77            = mpiifort
+LD              = mpiifort
+CC              = mpiicc
+AR              = ar
+MOD_ESMF        = /apps/software/standard/mpi/intel/18.0/intelmpi/18.0/esmf/7.1.0r-hdf5-1.8.22/mod/
+LIB_ESMF        = /apps/software/standard/mpi/intel/18.0/intelmpi/18.0/esmf/7.1.0r-hdf5-1.8.22/lib/
+INC_JASPER      = /apps/software/standard/compiler/intel/18.0/jasper/1.900.1/include/
+LIB_JASPER      = /apps/software/standard/compiler/intel/18.0/jasper/1.900.1/lib/
+INC_GRIBAPI     = /apps/software/standard/compiler/intel/18.0/grib_api/1.18.0/include/
+LIB_GRIBAPI     = /apps/software/standard/compiler/intel/18.0/grib_api/1.18.0/lib/
+INC_NETCDF      = /apps/software/standard/mpi/intel/18.0/intelmpi/18.0/netcdf/4.6.2-hdf5-1.8.22/include/
+LIB_NETCDF      = /apps/software/standard/mpi/intel/18.0/intelmpi/18.0/netcdf/4.6.2-hdf5-1.8.22/lib/
+INC_HDF4        = /apps/software/standard/compiler/intel/18.0/hdf/4.2.14-fortran/include/
+LIB_HDF4        = /apps/software/standard/compiler/intel/18.0/hdf/4.2.14-fortran/lib/
+INC_HDF5        = /apps/software/standard/mpi/intel/18.0/intelmpi/18.0/hdf5/1.8.22/include/
+LIB_HDF5        = /apps/software/standard/mpi/intel/18.0/intelmpi/18.0/hdf5/1.8.22/lib/
+INC_HDFEOS      = /apps/software/standard/compiler/intel/18.0/hdf-eos/2.20-fortran/include/
+LIB_HDFEOS      = /apps/software/standard/compiler/intel/18.0/hdf-eos/2.20-fortran/lib/
+LIB_MINPACK     = 
+INC_CRTM        = 
+LIB_CRTM        = 
+INC_PROF_UTIL   = 
+LIB_PROF_UTIL   = 
+INC_CMEM        = 
+LIB_CMEM        = 
+LIB_LAPACK      = -mkl
+CFLAGS          = -c   -traceback -DIFC -DLINUX -DLIS_JULES
+FFLAGS77        = -c  -O2 -heap-arrays -mkl=sequential -traceback -nomixed_str_len_arg -names lowercase -convert big_endian -assume byterecl -DSPMD -DHIDE_SHR_MSG -DNO_SHR_VMATH -DIFC -DLINUX -I$(MOD_ESMF) -DUSE_INCLUDE_MPI -I$(INC_GRIBAPI) -I$(INC_NETCDF) -I$(INC_HDFEOS) -I$(INC_HDF4) -I$(INC_HDF5) -DLIS_JULES
+FFLAGS          = -c  -O2 -heap-arrays -mkl=sequential -u -traceback -fpe0 -nomixed_str_len_arg -names lowercase -convert big_endian -assume byterecl -DSPMD -DHIDE_SHR_MSG -DNO_SHR_VMATH -DIFC -DLINUX -I$(MOD_ESMF) -DUSE_INCLUDE_MPI -I$(INC_GRIBAPI) -I$(INC_NETCDF) -I$(INC_HDFEOS) -I$(INC_HDF4) -I$(INC_HDF5) -DLIS_JULES
+LDFLAGS         =  -mkl=sequential -L$(LIB_ESMF) -lesmf -lstdc++ -limf -lrt -lmpi -L$(LIB_GRIBAPI) -lgrib_api_f90 -lgrib_api -L$(LIB_JASPER) -ljasper -L$(LIB_NETCDF) -lnetcdff -lnetcdf -L$(LIB_HDFEOS) -lhdfeos -lGctp -L$(LIB_HDF4) -lmfhdf -ldf -ljpeg -lz -L$(LIB_HDF5) -lhdf5_fortran -lhdf5_hl -lhdf5 -lsz -lz -ljpeg -lhdfeos -lGctp 

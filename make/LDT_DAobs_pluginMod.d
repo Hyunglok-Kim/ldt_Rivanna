@@ -1,0 +1,27 @@
+LDT_DAobs_pluginMod.o LDT_DAobs_pluginMod.d : LDT_DAobs_pluginMod.F90
+LDT_DAobs_pluginMod.o : GRACEtws_obsMod.o
+LDT_DAobs_pluginMod.o : GCOMW_AMSR2L3sm_obsMod.o
+LDT_DAobs_pluginMod.o : NASA_AMSREsm_obsMod.o
+LDT_DAobs_pluginMod.o : GCOMW_AMSR2L3snd_obsMod.o
+LDT_DAobs_pluginMod.o : LDT_pluginIndices.o
+LDT_DAobs_pluginMod.o : LPRMvod_obsMod.o
+LDT_DAobs_pluginMod.o : NASASMAPvod_obsMod.o
+LDT_DAobs_pluginMod.o : SMOSNESDISsm_obsMod.o
+LDT_DAobs_pluginMod.o : AquariusL2sm_obsMod.o
+LDT_DAobs_pluginMod.o : LISlsmSM_obsMod.o
+LDT_DAobs_pluginMod.o : CYGNSSsm_obsMod.o
+LDT_DAobs_pluginMod.o : WindSatsm_obsMod.o
+LDT_DAobs_pluginMod.o : syntheticsm_obsMod.o
+LDT_DAobs_pluginMod.o : LPRM_AMSREsm_obsMod.o
+LDT_DAobs_pluginMod.o : SMMRSNWDsnow_obsMod.o
+LDT_DAobs_pluginMod.o : GRACEQLtws_obsMod.o
+LDT_DAobs_pluginMod.o : SMOPSsm_obsMod.o
+LDT_DAobs_pluginMod.o : ASCATTUWsm_obsMod.o
+LDT_DAobs_pluginMod.o : simGRACEJPL_obsMod.o
+LDT_DAobs_pluginMod.o : GLASSlai_obsMod.o
+LDT_DAobs_pluginMod.o : NASASMAPsm_obsMod.o
+LDT_DAobs_pluginMod.o : SMOSL2sm_obsMod.o
+LDT_DAobs_pluginMod.o : MCD15A2Hlai_obsMod.o
+LDT_DAobs_pluginMod.o : SSMISNWDsnow_obsMod.o
+LDT_DAobs_pluginMod.o : ESACCIsm_obsMod.o
+LDT_DAobs_pluginMod.o : ANSASNWDsnow_obsMod.o
