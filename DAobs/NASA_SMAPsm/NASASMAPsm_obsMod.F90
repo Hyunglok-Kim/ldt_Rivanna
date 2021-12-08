@@ -46,8 +46,9 @@ module NASASMAPsm_obsMod
      character*100          :: odir
      character*20           :: data_designation
 
-    
-     character*20           :: applyerr            !HK
+     logical                :: err_switch          !HK read just one time 
+     character*20           :: applyerr            !HK 0: constant obs errvar
+                                                     ! 1: use 2d errvar map 
      character*20           :: errdata_designation !HK
      character*100          :: errdir              !HK
 
@@ -139,13 +140,16 @@ contains
     call ESMF_ConfigFindLabel(LDT_config, &
          'Apply error map:', rc=status)
     do n=1,LDT_rc%nnest
+
+       NASASMAPsmobs(n)%errvar_switch = .false. 
+
        call ESMF_ConfigGetAttribute(LDT_Config, &
             NASASMAPsmobs(n)%applyerr, &
             rc=status)
        call LDT_verify(status, &
             'Apply error map: not defined')
     enddo
-
+    
     !HK
     call ESMF_ConfigFindLabel(LDT_config, &
          'NASA SMAP soil moisture error data designation:', rc=status)
