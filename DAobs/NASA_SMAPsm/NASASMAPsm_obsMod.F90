@@ -40,6 +40,7 @@ module NASASMAPsm_obsMod
 ! !PUBLIC TYPES:
 !-----------------------------------------------------------------------------
   PUBLIC :: NASASMAPsmobs
+  PUBLIC :: NASASMAPsmobs_err !HK
 !EOP
   type, public :: smapsmobsdec
 
@@ -47,7 +48,7 @@ module NASASMAPsm_obsMod
      character*20           :: data_designation
 
      logical                :: err_switch          !HK read just one time 
-     character*20           :: applyerr            !HK 0: constant obs errvar
+     integer                :: applyerr            !HK 0: constant obs errvar
                                                      ! 1: use 2d errvar map 
      character*20           :: errdata_designation !HK
      character*100          :: errdir              !HK
@@ -57,12 +58,14 @@ module NASASMAPsm_obsMod
      real                   :: search_radius
      integer                :: mo
      real,    allocatable   :: smobs(:,:)
+     real,    allocatable   :: smobs_err(:,:) !HK
      integer                :: nc, nr
      type(proj_info)        :: proj
      integer, allocatable   :: n11(:)
   end type smapsmobsdec
 
   type(smapsmobsdec), allocatable:: NASASMAPsmobs(:)
+  type(smapsmobsdec), allocatable:: NASASMAPsmobs_err(:) !HK
 
 contains
   
@@ -97,6 +100,7 @@ contains
     integer                 :: n 
 
     allocate(NASASMAPsmobs(LDT_rc%nnest))
+    allocate(NASASMAPsmobs_err(LDT_rc%nnest)) !HK
 
     call ESMF_ConfigFindLabel(LDT_config, &
          'NASA SMAP soil moisture observation directory:', rc=status)
@@ -141,21 +145,21 @@ contains
          'Apply error map:', rc=status)
     do n=1,LDT_rc%nnest
 
-       NASASMAPsmobs(n)%errvar_switch = .false. 
+       NASASMAPsmobs_err(n)%err_switch = .false. 
 
        call ESMF_ConfigGetAttribute(LDT_Config, &
-            NASASMAPsmobs(n)%applyerr, &
+            NASASMAPsmobs_err(n)%applyerr, &
             rc=status)
        call LDT_verify(status, &
             'Apply error map: not defined')
     enddo
-    
+        
     !HK
     call ESMF_ConfigFindLabel(LDT_config, &
          'NASA SMAP soil moisture error data designation:', rc=status)
     do n=1,LDT_rc%nnest
        call ESMF_ConfigGetAttribute(LDT_Config, &
-            NASASMAPsmobs(n)%errdata_designation, &
+            NASASMAPsmobs_err(n)%errdata_designation, &
             rc=status)
        call LDT_verify(status, &
             'NASA SMAP soil moisture error data designation: not defined')
@@ -166,7 +170,7 @@ contains
          'Error map directory:', rc=status)
     do n=1,LDT_rc%nnest
        call ESMF_ConfigGetAttribute(LDT_Config, &
-            NASASMAPsmobs(n)%errdir, &
+            NASASMAPsmobs_err(n)%errdir, &
             rc=status)
        call LDT_verify(status, &
             'Error map directory: not defined')
@@ -238,6 +242,75 @@ contains
        call neighbor_interp_input (n, gridDesci,&
             NASASMAPsmobs(n)%n11)
        
+
+    enddo
+  
+    !HK 
+    do n=1,LDT_rc%nnest
+
+       allocate(NASASMAPsmobs_err(n)%smobs_err(LDT_rc%lnc(n),LDT_rc%lnr(n)))
+
+       NASASMAPsmobs_err(n)%smobs_err = -9999.0
+       
+       !call LDT_initializeDAobsEntry(LDT_DAobsData(n)%soilmoist_obs_err, &
+       !     "m3/m3",1,1)
+       !LDT_DAobsData(n)%soilmoist_obs_err%selectStats = 0
+    
+       if(NASASMAPsmobs_err(n)%errdata_designation.eq."L3") then 
+          NASASMAPsmobs_err(n)%nc = 964
+          NASASMAPsmobs_err(n)%nr = 406
+
+          gridDesci= 0 
+          gridDesci(1) = 9
+          gridDesci(2) = 964
+          gridDesci(3) = 406
+          gridDesci(9) = 4 !M36 grid
+          gridDesci(20) = 64
+          gridDesci(10) = 0.36 
+          gridDesci(11) = 1 !for the global switch
+
+       elseif(NASASMAPsmobs_err(n)%errdata_designation.eq."L3_E") then 
+          NASASMAPsmobs_err(n)%nc = 3856
+          NASASMAPsmobs_err(n)%nr= 1624
+
+          gridDesci= 0 
+          gridDesci(1) = 9
+          gridDesci(2) = 3856
+          gridDesci(3) = 1624
+          gridDesci(9) = 5 !M09 grid
+          gridDesci(20) = 64
+          gridDesci(10) = 0.09 
+          gridDesci(11) = 1 !for the global switch
+
+       elseif(NASASMAPsmobs_err(n)%errdata_designation.eq."L2") then 
+          NASASMAPsmobs_err(n)%nc= 964
+          NASASMAPsmobs_err(n)%nr= 406
+
+          gridDesci= 0 
+          gridDesci(1) = 9
+          gridDesci(2) = 964
+          gridDesci(3) = 406
+          gridDesci(9) = 4 !M36 grid
+          gridDesci(20) = 64
+          gridDesci(10) = 0.36 
+          gridDesci(11) = 1 !for the global switch
+
+       elseif(NASASMAPsmobs_err(n)%errdata_designation.eq."L2_E") then 
+          NASASMAPsmobs_err(n)%nc= 3856
+          NASASMAPsmobs_err(n)%nr= 1624
+
+          gridDesci= 0 
+          gridDesci(1) = 9
+          gridDesci(2) = 3856
+          gridDesci(3) = 1624
+          gridDesci(9) = 5 !M09 grid
+          gridDesci(20) = 64
+          gridDesci(10) = 0.09 
+          gridDesci(11) = 1 !for the global switch
+       endif
+       allocate(NASASMAPsmobs_err(n)%n11(LDT_rc%lnc(n)*LDT_rc%lnr(n)))       
+       call neighbor_interp_input (n, gridDesci,&
+            NASASMAPsmobs_err(n)%n11)
 
     enddo
   end subroutine NASASMAPsm_obsinit

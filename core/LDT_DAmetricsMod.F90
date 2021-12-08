@@ -90,6 +90,9 @@ contains
          LDT_DAobsData(n)%snowdepth_obs,LDT_DAmetrics%snowdepth)
     call registerMetricsEntry(LDT_DA_MOC_SOILMOIST,nsize,&
          LDT_DAobsData(n)%soilmoist_obs,LDT_DAmetrics%soilmoist)
+    !HK
+    !call registerMetricsEntry(LDT_DA_MOC_SOILMOIST_ERR,nsize,&
+    !     LDT_DAobsData(n)%soilmoist_obs_err,LDT_DAmetrics%soilmoist_err)
     call registerMetricsEntry(LDT_DA_MOC_TWS,nsize,&
          LDT_DAobsData(n)%tws_obs,LDT_DAmetrics%tws)
     call registerMetricsEntry(LDT_DA_MOC_VOD,nsize,&

@@ -96,6 +96,7 @@ module LDT_DAobsDataMod
      type(LDT_DAmetadataEntry) :: swe          ! Snow water equivalent (kg/m2)
      type(LDT_DAmetadataEntry) :: snowdepth
      type(LDT_DAmetadataEntry) :: soilmoist
+     type(LDT_DAmetadataEntry) :: soilmoist_err !HK
      type(LDT_DAmetadataEntry) :: vod
      type(LDT_DAmetadataEntry) :: lai
 
@@ -109,6 +110,7 @@ module LDT_DAobsDataMod
      type(LDT_DAmetadataEntry) :: swe_obs
      type(LDT_DAmetadataEntry) :: snowdepth_obs
      type(LDT_DAmetadataEntry) :: soilmoist_obs
+     !type(LDT_DAmetadataEntry) :: soilmoist_obs_err !HK
      type(LDT_DAmetadataEntry) :: tws_obs
      type(LDT_DAmetadataEntry) :: vod_obs
      type(LDT_DAmetadataEntry) :: lai_obs
@@ -193,6 +195,9 @@ contains
          LDT_DAobsData(i)%snowdepth_obs,1,nsize,(/"m"/))
     call register_obsDataEntry(i,LDT_DA_MOC_SOILMOIST ,&
          LDT_DAobsData(i)%soilmoist_obs,2,nsize,(/"kg/m2", "m3/m3"/))
+    !HK
+    !call register_obsDataEntry(i,LDT_DA_MOC_SOILMOIST_ERR ,&
+    !     LDT_DAobsData(i)%soilmoist_obs_err,2,nsize,(/"kg/m2", "m3/m3"/))
     call register_obsDataEntry(i,LDT_DA_MOC_TWS ,&
          LDT_DAobsData(i)%tws_obs,1,nsize,(/"mm"/))
     call register_obsDataEntry(i,LDT_DA_MOC_VOD ,&

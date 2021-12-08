@@ -64,6 +64,7 @@ subroutine readNASASMAPsmObs(n)
    character*200     :: list_files
    character*100     :: smap_filename(10)
    real              :: smobs(LDT_rc%lnc(n)*LDT_rc%lnr(n))
+   real              :: smobs_err(LDT_rc%lnc(n)*LDT_rc%lnr(n))
    character(len=3) :: CRID
 !-----------------------------------------------------------------------
 ! It is assumed that CDF is computed using daily observations.
@@ -71,6 +72,74 @@ subroutine readNASASMAPsmObs(n)
    NASASMAPsmobs(n)%smobs = LDT_rc%udef
    smobs = LDT_rc%udef
 
+   !HK
+   if (NASASMAPsmobs_err(n)%applyerr.eq.1.and. &
+      NASASMAPsmobs_err(n)%err_switch.eq..false.) then
+      
+      NASASMAPsmobs_err(n)%smobs_err = LDT_rc%udef
+      smobs_err = LDT_rc%udef
+
+      if (NASASMAPsmobs_err(n)%errdata_designation .ne. "L2") then
+         write (LDT_logunit, *) '[ERR] only L2 err designatio is supported'
+         call LDT_endrun()
+      endif
+
+      write (yyyymmdd, '(i4.4,2i2.2)') LDT_rc%yr, LDT_rc%mo, LDT_rc%da
+      write (yyyy, '(i4.4)') LDT_rc%yr
+      write (mm, '(i2.2)') LDT_rc%mo
+      write (dd, '(i2.2)') LDT_rc%da
+      write (hh, '(i2.2)') LDT_rc%hr
+
+     ! This code block can be useful for time-varing error map  
+     ! list_files = 'ls '//trim(NASASMAPsmobs(n)%odir)// &
+     !              '/'//trim(yyyy)//'.'//trim(mm)//'.'//dd// &
+     !              '/SMAP_L2_*'//trim(yyyymmdd)//'T'//trim(hh) &
+     !              //"*.h5 > SMAP_filelist.dat"
+
+     ! call system(trim(list_files))
+     ! 
+     ! i = 1
+     ! ftn = LDT_getNextUnitNumber()
+     ! 
+     ! open (ftn, file="./SMAP_filelist.dat", &
+     !       status='old', iostat=ierr)
+
+     ! do while (ierr .eq. 0)
+     !    read (ftn, '(a)', iostat=ierr) fname
+     !    if (ierr .ne. 0) then
+     !       exit
+     !    endif
+     !    mn_ind = index(fname, trim(yyyymmdd)//'T'//trim(hh))
+
+     !    mn_ind = index(fname, trim(yyyymmdd)//'T'//trim(hh)) + 11
+     !    read (fname(mn_ind:mn_ind + 1), '(i2.2)') mn
+     !    ss = 0
+     !    call LDT_tick(timenow, doy, gmt, LDT_rc%yr, LDT_rc%mo, LDT_rc%da, &
+     !                  LDT_rc%hr, mn, ss, 0.0)
+
+     !    smap_filename(i) = fname
+     ! write (LDT_logunit, *) '[INFO] reading ', trim(smap_filename(i))
+
+     !    call read_SMAPL2sm_data(n, smap_filename(i), &
+     !                            NASASMAPsmobs(n)%smobs, timenow)
+
+     !    i = i + 1
+     ! enddo
+      
+      ftn = LDT_getNextUnitNumber()
+      call LDT_tick(timenow, doy, gmt, LDT_rc%yr, LDT_rc%mo, LDT_rc%da, &
+                    LDT_rc%hr, mn, ss, 0.0)
+     
+      fname = trim(NASASMAPsmobs_err(n)%errdir)
+      write (LDT_logunit, *) '[INFO] reading the SMAP error map (L2 format) from ', trim(fname)
+      NASASMAPsmobs_err(n)%err_switch =  .true.
+
+      call read_SMAPL2sm_err_data(n, fname, NASASMAPsmobs_err(n)%smobs_err)
+      
+      call LDT_releaseUnitNumber(ftn)
+      
+   endif 
+   
    if (NASASMAPsmobs(n)%data_designation .eq. "SPL2SMP" .or. &
        NASASMAPsmobs(n)%data_designation .eq. "SPL2SMP_E") then
 
@@ -701,6 +770,170 @@ subroutine read_NASASMAP_data(n, fname, smobs_ip)
 
 end subroutine read_NASASMAP_data
 
+!HK
+!BOP
+! 
+! !ROUTINE: read_SMAPL2sm_err_data
+! \label{read_SMAPL2sm_err_data}
+!
+! !INTERFACE:
+subroutine read_SMAPL2sm_err_data(n, fname, smobs_err_inp)
+! 
+! !USES:   
+
+  use LDT_coreMod
+  use LDT_logMod
+  use LDT_timeMgrMod
+  use NASASMAPsm_obsMod
+#if (defined USE_HDF5) 
+  use hdf5
+#endif
+
+  implicit none
+!
+! !INPUT PARAMETERS: 
+! 
+  integer                  :: n
+  character (len=*)        :: fname
+  real                     :: smobs_err_inp(LDT_rc%lnc(n),LDT_rc%lnr(n))
+  real*8                   :: time
+
+! !OUTPUT PARAMETERS:
+!
+!
+! !DESCRIPTION: 
+!
+!
+!EOP
+
+#if (defined USE_HDF5)
+
+  character*100,    parameter    :: sm_err_gr_name = "fMSE_Data"
+  character*100,    parameter    :: sm_err_field_name = "errvar"
+
+  integer(hsize_t), dimension(1) :: dims
+  integer(hsize_t), dimension(1) :: maxdims
+  integer(hid_t)                 :: file_id
+  integer(hid_t)                 :: dspace_id
+  integer(hid_t)                 :: row_id, col_id
+  integer(hid_t)                 :: sm_err_gr_id,sm_err_field_id
+  integer(hid_t)                 :: sm_err_gr_id_A,sm_err_field_id_A
+  real,             allocatable  :: sm_err_field(:)
+  integer,          allocatable  :: ease_row(:)
+  integer,          allocatable  :: ease_col(:)
+  integer                        :: c,r,t
+  logical*1                      :: sm_err_data_b(NASASMAPsmobs_err(n)%nc*NASASMAPsmobs_err(n)%nr)
+  logical*1                      :: smobs_err_b_ip(LDT_rc%lnc(n)*LDT_rc%lnr(n))
+  real                           :: sm_err_data(NASASMAPsmobs_err(n)%nc*NASASMAPsmobs_err(n)%nr)
+  real                           :: smobs_err_ip(LDT_rc%lnc(n)*LDT_rc%lnr(n))
+
+  integer                        :: status,ios,iret
+
+  call h5open_f(status)
+  call LDT_verify(status, 'Error opening HDF fortran interface')
+  
+  call h5fopen_f(trim(fname),H5F_ACC_RDONLY_F, file_id, status) 
+  call LDT_verify(status, 'Error opening SMAP error L2 file ')
+  
+  call h5gopen_f(file_id,sm_err_gr_name,sm_err_gr_id, status)
+  call LDT_verify(status, 'Error opening error group in SMAP error L2 file')
+  
+  call h5dopen_f(sm_err_gr_id,sm_err_field_name,sm_err_field_id, status)
+  call LDT_verify(status, 'Error opening error field in SMAP error L2 file')
+
+  call h5dopen_f(sm_err_gr_id,"EASE_row_index",row_id, status)
+  call LDT_verify(status, 'Error opening row index field in SMAP error L2 file')
+
+  call h5dopen_f(sm_err_gr_id,"EASE_column_index",col_id, status)
+  call LDT_verify(status, 'Error opening column index field in SMAP error L2 file')
+
+  call h5dget_space_f(sm_err_field_id, dspace_id, status)
+  call LDT_verify(status, 'Error in h5dget_space_f: read_SMAPL2sm_err_data')
+  
+! Size of the arrays
+! This routine returns -1 on failure, rank on success. 
+  call h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, status) 
+  if(status.eq.-1) then 
+     call LDT_verify(status, 'Error in h5sget_simple_extent_dims_f: read_SMAPL2sm_err_data')
+  endif
+  
+  allocate(sm_err_field(maxdims(1)))
+  allocate(ease_row(maxdims(1)))
+  allocate(ease_col(maxdims(1)))
+
+  call h5dread_f(row_id, H5T_NATIVE_INTEGER,ease_row,dims,status)
+  call LDT_verify(status, 'Error extracting row index from SMAP error L2 file')
+
+  call h5dread_f(col_id, H5T_NATIVE_INTEGER,ease_col,dims,status)
+  call LDT_verify(status, 'Error extracting col index from SMAP error L2 file')
+  
+  call h5dread_f(sm_err_field_id, H5T_NATIVE_REAL,sm_err_field,dims,status)
+  call LDT_verify(status, 'Error extracting SM field from SMAP error L2 file')
+
+  call h5dclose_f(row_id,status)
+  call LDT_verify(status,'Error in H5DCLOSE call')
+
+  call h5dclose_f(col_id,status)
+  call LDT_verify(status,'Error in H5DCLOSE call')
+
+  call h5dclose_f(sm_err_field_id,status)
+  call LDT_verify(status,'Error in H5DCLOSE call')
+  
+  call h5gclose_f(sm_err_gr_id,status)
+  call LDT_verify(status,'Error in H5GCLOSE call')
+    
+  call h5fclose_f(file_id,status)
+  call LDT_verify(status,'Error in H5FCLOSE call')
+  
+  call h5close_f(status)
+  call LDT_verify(status,'Error in H5CLOSE call')
+
+  sm_err_data = LDT_rc%udef
+  sm_err_data_b = .false. 
+
+!grid the data in EASE projection
+  do t=1,maxdims(1)
+     if(ease_col(t).gt.0.and.ease_row(t).gt.0) then 
+        sm_err_data(ease_col(t) + &
+             (ease_row(t)-1)*NASASMAPsmobs_err(n)%nc) = sm_err_field(t) 
+        if(sm_err_field(t).ne.-9999.0) then 
+           sm_err_data_b(ease_col(t) + &
+                (ease_row(t)-1)*NASASMAPsmobs_err(n)%nc) = .true. 
+        endif
+     endif
+  enddo
+  
+  t = 1
+!--------------------------------------------------------------------------
+! Interpolate to the LDT running domain
+!-------------------------------------------------------------------------- 
+  call neighbor_interp(LDT_rc%gridDesc, sm_err_data_b, sm_err_data, &
+       smobs_err_b_ip, smobs_err_ip, &
+       NASASMAPsmobs_err(n)%nc*NASASMAPsmobs_err(n)%nr,&
+       LDT_rc%lnc(n)*LDT_rc%lnr(n),&
+       LDT_domain(n)%lat, LDT_domain(n)%lon,&
+       NASASMAPsmobs_err(n)%n11,LDT_rc%udef, iret)
+
+  deallocate(sm_err_field)
+  deallocate(ease_row)
+  deallocate(ease_col)
+
+!overwrite the input data !HK: what is this?
+  do r=1,LDT_rc%lnr(n)
+     do c=1,LDT_rc%lnc(n)
+        if(smobs_err_ip(c+(r-1)*LDT_rc%lnc(n)).ne.-9999.0) then 
+           smobs_err_inp(c,r) = & 
+                smobs_err_ip(c+(r-1)*LDT_rc%lnc(n))
+
+!           NASASMAPsmobs(n)%smtime(c,r) = & 
+!                time
+        endif
+     enddo
+  enddo
+
+#endif
+
+end subroutine read_SMAPL2sm_err_data
 
 # if 0
 !BOP
